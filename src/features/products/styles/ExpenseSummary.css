@@ -1,0 +1,219 @@
+/* Estilos para el componente de resumen de gastos */
+.expense-summary-modal .modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+.expense-header {
+  background: linear-gradient(135deg, #3a7bd5, #3a6073);
+  color: white;
+  padding: 1rem;
+  border-bottom: none;
+}
+
+.expense-body {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+}
+
+.expense-footer {
+  border-top: none;
+  background-color: #f1f1f1;
+  padding: 1rem;
+}
+
+.close-button {
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Secciones */
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #3a6073;
+  position: relative;
+  padding-left: 1rem;
+  border-left: 4px solid #3a7bd5;
+}
+
+.filter-section {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.filter-control {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.filter-control:focus {
+  border-color: #3a7bd5;
+  box-shadow: 0 0 0 0.25rem rgba(58, 123, 213, 0.25);
+}
+
+/* Tablas */
+.summary-table, .store-table, .products-table {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  border: none;
+}
+
+/* Estilos para los encabezados de tabla */
+.table-primary {
+  background-color: #16A34A !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.table-primary th {
+  color: white !important;
+  text-align: center;
+  font-size: 1.1rem;
+  border: 1px solid #099440;
+}
+
+/* Filas de las tablas */
+.table tbody tr td {
+  color: #333333 !important;
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.table-header {
+  background-color: #f1f1f1;
+  color: #333333 !important;
+  font-weight: 600;
+}
+
+/* Filas de productos */
+.product-row {
+  transition: background-color 0.2s ease;
+}
+
+.product-row:hover {
+  background-color: rgba(22, 163, 74, 0.1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.product-name {
+  font-weight: 600;
+  color: #212529 !important;
+}
+
+/* Columna de nombre de producto */
+.products-table .product-name {
+  color: #212529 !important;
+  font-weight: 600;
+  padding: 0.75rem;
+}
+
+/* Columna de fecha */
+.date-cell {
+  color: #333333 !important;
+  font-weight: 500;
+}
+
+/* Estilos para la tabla de tiendas */
+.store-table .store-name {
+  color: #212529 !important;
+  font-weight: 600;
+}
+
+/* Badges */
+.badge {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.6rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.count-badge {
+  font-size: 1.1rem;
+  padding: 0.4rem 0.8rem;
+}
+
+.amount-badge {
+  font-size: 1.1rem;
+  padding: 0.4rem 0.8rem;
+  background: linear-gradient(135deg, #ff416c, #ff4b2b);
+  box-shadow: 0 2px 8px rgba(255, 75, 43, 0.3);
+}
+
+.category-badge {
+  background-color: #6c757d;
+  padding: 0.4rem 0.8rem;
+}
+
+.store-badge {
+  background-color: #00b5d8;
+  padding: 0.4rem 0.8rem;
+}
+
+.price-badge {
+  font-size: 1rem;
+  padding: 0.4rem 0.8rem;
+}
+
+.price-badge.bg-danger {
+  background: linear-gradient(135deg, #ff416c, #ff4b2b) !important;
+  box-shadow: 0 2px 8px rgba(255, 75, 43, 0.3);
+}
+
+.price-badge.bg-warning {
+  background: linear-gradient(135deg, #f7971e, #ffd200) !important;
+  box-shadow: 0 2px 8px rgba(255, 210, 0, 0.3);
+  color: #212529;
+}
+
+.price-badge.bg-success {
+  background: linear-gradient(135deg, #56ab2f, #a8e063) !important;
+  box-shadow: 0 2px 8px rgba(168, 224, 99, 0.3);
+}
+
+/* Gráfico */
+.chart-container {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.1rem;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.5rem;
+  }
+  
+  .count-badge, .amount-badge, .price-badge {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+/* Estados y mensajes */
+.loading-indicator {
+  color: #3a7bd5;
+  font-weight: 600;
+}
+
+.no-data {
+  color: #6c757d;
+  font-style: italic;
+} 

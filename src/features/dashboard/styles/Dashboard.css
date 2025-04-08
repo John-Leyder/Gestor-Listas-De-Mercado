@@ -1,0 +1,479 @@
+.dashboard {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* Navbar */
+.dashboard-navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  animation: slideDown 0.5s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.dashboard-navbar .navbar-brand {
+  color: var(--primary-color);
+  font-size: 1.25rem;
+  letter-spacing: -0.5px;
+}
+
+/* Botones de navegación con efecto hover */
+.nav-button {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  opacity: 0.1;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.nav-button:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.nav-button::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+}
+
+.nav-button:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.nav-button:active {
+  transform: scale(0.95);
+}
+
+/* Estilos para el título de la marca */
+.brand-title {
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-icon {
+  font-size: 1.75rem;
+  color: #0d6efd;
+  margin-right: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+.brand-text {
+  background: linear-gradient(135deg, #0d6efd, #0099ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  animation: shimmer 3s infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Animaciones para el ícono del menú */
+.menu-icon-open {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.menu-icon-open:hover {
+  transform: rotate(90deg);
+  color: #007bff;
+}
+
+.menu-icon-close {
+  animation: wobble 0.5s ease;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(15deg); }
+  40% { transform: rotate(-10deg); }
+  60% { transform: rotate(5deg); }
+  80% { transform: rotate(-5deg); }
+}
+
+/* Mobile sidebar toggle button */
+.mobile-sidebar-toggle {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  transition: all 0.3s ease;
+}
+
+.mobile-sidebar-toggle:active {
+  transform: scale(0.9);
+}
+
+/* Mobile sidebar overlay */
+.mobile-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  backdrop-filter: blur(3px);
+}
+
+.mobile-sidebar-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: #ffffff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem 1rem;
+  position: sticky;
+  top: 73px;
+  height: calc(100vh - 73px);
+  overflow-y: auto;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sidebar .nav-link {
+  color: #495057;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar .nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.sidebar .nav-link:hover::before {
+  transform: translateX(0);
+}
+
+.sidebar .nav-link:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.15);
+}
+
+.sidebar .nav-link.active {
+  background: linear-gradient(135deg, #0d6efd, #0099ff);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  animation: pulseHighlight 2s infinite;
+}
+
+@keyframes pulseHighlight {
+  0% {
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 18px rgba(13, 110, 253, 0.5);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  }
+}
+
+/* Animación para los items del menú */
+.menu-item-animation {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-item-animation:hover {
+  transform: translateX(8px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.menu-item-animation:active {
+  transform: scale(0.95) translateX(8px);
+}
+
+.sidebar .nav-link svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover svg {
+  transform: scale(1.2) rotate(5deg);
+  color: #007bff;
+}
+
+.sidebar .nav-link.active svg {
+  animation: spinIcon 10s linear infinite;
+}
+
+@keyframes spinIcon {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.main-content {
+  padding: 2rem;
+  background-color: var(--background-light);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  animation: fadeScale 0.5s ease-out forwards;
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Efecto cuando el sidebar está abierto en movil */
+body.sidebar-open {
+  overflow: hidden;
+}
+
+body.sidebar-open .main-content {
+  filter: blur(2px);
+  pointer-events: none;
+  transform: scale(0.98);
+}
+
+/* Animación de entrada para el sidebar */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Estilos para las cards en el dashboard */
+.dashboard-card {
+  background: white;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  height: 100%;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card-title {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.dashboard-card-value {
+  color: var(--primary-color);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+/* Estilos para las tablas */
+.table-responsive {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  background-color: var(--background-dark);
+  color: var(--text-secondary);
+  padding: 1rem;
+}
+
+.table td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+/* Estilos para los botones de acción */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-buttons .btn {
+  padding: 0.375rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Estilos para los formularios */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* Estilos para los filtros */
+.filters-section {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Estilos para los badges */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  font-size: 0.85em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -100%;
+    top: 0;
+    height: 100vh;
+    z-index: 1030;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1rem 0.5rem;
+    width: 250px;
+    padding-top: 70px;
+  }
+
+  .sidebar.show {
+    left: 0;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s forwards;
+  }
+
+  .sidebar .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .brand-text {
+    font-size: 1.2rem;
+  }
+
+  /* Para dispositivos muy pequeños */
+  @media (max-width: 360px) {
+    .brand-text {
+      font-size: 1rem;
+    }
+    
+    .mobile-sidebar-toggle {
+      margin-right: 0.25rem;
+    }
+  }
+} 

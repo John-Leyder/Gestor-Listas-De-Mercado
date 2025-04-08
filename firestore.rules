@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permite a los usuarios autenticados leer y escribir sus propios datos
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Reglas para tiendas
+    match /stores/{storeId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Reglas para productos
+    match /products/{productId} {
+      // Permite acceso si el usuario es dueño de la tienda asociada al producto
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/stores/$(resource.data.storeId)) &&
+        get(/databases/$(database)/documents/stores/$(resource.data.storeId)).data.userId == request.auth.uid;
+      
+      // Para creación, verificar que el usuario sea dueño de la tienda
+      allow create: if request.auth != null && 
+        exists(/databases/$(database)/documents/stores/$(request.resource.data.storeId)) &&
+        get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.userId == request.auth.uid;
+    }
+    
+    // Reglas para categorías
+    match /categories/{categoryId} {
+      // Permite acceso si el usuario es dueño de la tienda asociada a la categoría
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/stores/$(resource.data.storeId)) &&
+        get(/databases/$(database)/documents/stores/$(resource.data.storeId)).data.userId == request.auth.uid;
+      
+      // Para creación, verificar que el usuario sea dueño de la tienda
+      allow create: if request.auth != null && 
+        exists(/databases/$(database)/documents/stores/$(request.resource.data.storeId)) &&
+        get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.userId == request.auth.uid;
+    }
+  }
+} 

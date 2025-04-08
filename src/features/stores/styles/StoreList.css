@@ -1,0 +1,341 @@
+/* StoreList.css - Estilos modernos para la lista de tiendas */
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Título de página */
+.page-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  position: relative;
+  margin-bottom: 0;
+  font-size: 2rem;
+  text-shadow: 1px 1px 2px rgba(22, 101, 52, 0.1);
+}
+
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  border-radius: 2px;
+}
+
+/* Botón para agregar */
+.add-button {
+  transform: translateY(0);
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  border: none;
+  box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2);
+}
+
+.add-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(22, 101, 52, 0.3);
+}
+
+/* Estado vacío */
+.empty-state {
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  padding: 3rem 2rem;
+  box-shadow: var(--shadow-sm);
+  margin: 2rem 0;
+  border-top: 5px solid var(--primary-color);
+}
+
+/* Estilos para la lista de tiendas */
+.store-list-container {
+  margin-top: 20px;
+}
+
+.store-card {
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  border: none;
+}
+
+.store-card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1.25rem;
+}
+
+.store-card-body {
+  padding: 1.25rem;
+}
+
+/* Estilos para la tabla de tiendas */
+.store-table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.store-table thead th {
+  background-color: #16A34A;
+  color: white;
+  font-weight: 600;
+  padding: 12px 15px;
+  text-align: center;
+  border: none;
+  vertical-align: middle;
+}
+
+.store-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.store-table tbody tr:hover {
+  background-color: rgba(22, 163, 74, 0.1);
+}
+
+.store-table tbody td {
+  padding: 12px 15px;
+  vertical-align: middle;
+  border-top: 1px solid #dee2e6;
+  color: #333333;
+  font-weight: 500;
+}
+
+/* Estilos para los botones de acción */
+.action-btn {
+  margin-right: 5px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Estilos para los badges */
+.badge {
+  padding: 6px 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 50px;
+}
+
+/* Estilos para formularios */
+.form-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #495057;
+}
+
+.form-control {
+  border-radius: 8px;
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 0.25rem rgba(22, 163, 74, 0.25);
+}
+
+/* Estilos para modales */
+.modal-content {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  background-color: #16A34A;
+  color: white;
+  border-bottom: none;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.modal-footer {
+  border-top: none;
+  padding: 1rem;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .store-table thead th {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+  
+  .store-table tbody td {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+  
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Tarjetas de tiendas */
+.store-card {
+  transition: all 0.3s ease;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  background-color: white;
+  position: relative;
+}
+
+.store-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+}
+
+.store-card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-lg);
+}
+
+.store-icon-wrapper {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 30px;
+  box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2);
+  transition: all 0.3s ease;
+}
+
+.store-card:hover .store-icon-wrapper {
+  transform: scale(1.1);
+}
+
+.store-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.store-name::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  background-color: var(--primary-light);
+  border-radius: 1.5px;
+}
+
+.store-address {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-bottom: 1.5rem;
+}
+
+/* Animación para cargar nuevas tarjetas */
+.animate-card {
+  animation: cardAppear 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes cardAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botones en tarjetas */
+.store-card .btn-outline-primary {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transition: all 0.3s ease;
+}
+
+.store-card .btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 8px rgba(22, 101, 52, 0.15);
+}
+
+.store-card .btn-outline-danger {
+  transition: all 0.3s ease;
+}
+
+.store-card .btn-outline-danger:hover {
+  box-shadow: 0 4px 8px rgba(248, 113, 113, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .page-title::after {
+    width: 40px;
+    height: 3px;
+  }
+  
+  .add-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .store-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+  
+  .store-name {
+    font-size: 1.1rem;
+  }
+  
+  .store-address {
+    font-size: 0.8rem;
+  }
+} 
