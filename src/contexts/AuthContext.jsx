@@ -51,9 +51,36 @@ export function AuthProvider({ children }) {
   };
 
   // Inicio de sesión con GitHub
-  const loginWithGithub = () => {
+  const loginWithGithub = async () => {
     const provider = new GithubAuthProvider();
-    return signInWithPopup(auth, provider);
+    try {
+      return await signInWithPopup(auth, provider);
+    } catch (error) {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        const email = error.customData?.email;
+        const pendingCredential = GithubAuthProvider.credentialFromError(error);
+
+        if (email && pendingCredential) {
+          try {
+            // Obtener los métodos de inicio de sesión asociados al email
+            const methods = await auth.fetchSignInMethodsForEmail(email);
+
+            if (methods.includes('google.com')) {
+              const googleProvider = new GoogleAuthProvider();
+              const result = await signInWithPopup(auth, googleProvider);
+
+              // Vincular las credenciales pendientes
+              await result.user.linkWithCredential(pendingCredential);
+              return result;
+            }
+          } catch (linkError) {
+            console.error('Error al vincular las credenciales:', linkError);
+            throw new Error('No se pudo vincular la cuenta. Intenta de nuevo.');
+          }
+        }
+      }
+      throw error;
+    }
   };
 
   // Cerrar sesión
@@ -76,4 +103,4 @@ export function AuthProvider({ children }) {
       {!loading && children}
     </AuthContext.Provider>
   );
-} 
+}

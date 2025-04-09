@@ -111,8 +111,68 @@ function Login() {
       navigate('/dashboard');
     } catch (error) {
       console.error(`Error de inicio de sesión con ${provider}:`, error);
-      const errorMessage = generateAuthErrorMessage(error, provider);
-      toast.error(errorMessage);
+
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        const email = error.customData?.email;
+        const pendingCredential = error.customData?.credential;
+
+        if (email && pendingCredential) {
+          try {
+            // Obtener los métodos de inicio de sesión asociados al email
+            const methods = await auth.fetchSignInMethodsForEmail(email);
+
+            if (methods.length > 0) {
+              const providerId = methods[0];
+              const providerName = getProviderName(providerId);
+
+              // Solicitar al usuario que inicie sesión con el proveedor existente
+              toast.info(`El email ${email} ya está registrado. Por favor inicia sesión con ${providerName}.`);
+
+              // Iniciar sesión con el proveedor existente
+              let result;
+              if (providerId === 'google.com') {
+                result = await loginWithGoogle();
+              } else if (providerId === 'github.com') {
+                result = await loginWithGithub();
+              }
+
+              // Vincular las credenciales pendientes
+              if (result?.user) {
+                await result.user.linkWithCredential(pendingCredential);
+                toast.success('Cuenta vinculada exitosamente.');
+                navigate('/dashboard');
+              }
+            }
+          } catch (linkError) {
+            console.error('Error al vincular las credenciales:', linkError);
+            toast.error('No se pudo vincular la cuenta. Intenta de nuevo.');
+          }
+        }
+      } else {
+        const errorMessage = generateAuthErrorMessage(error, provider);
+        toast.error(errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Manejador de inicio de sesión con GitHub
+  const handleGithubLogin = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      await loginWithGithub();
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error de inicio de sesión con GitHub:', error);
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        const email = error.customData?.email;
+        setError(`Esta cuenta de correo (${email}) ya está registrada con otro método de inicio de sesión. Por favor, usa ese método.`);
+        toast.error(`Por favor, inicia sesión con el método que usaste originalmente para ${email}`);
+      } else {
+        setError('Error al iniciar sesión con GitHub. Por favor intenta otro método.');
+      }
     } finally {
       setLoading(false);
     }
@@ -179,7 +239,7 @@ function Login() {
             <button 
               className="social-btn github"
               disabled={loading}
-              onClick={() => handleSocialLogin('GitHub', loginWithGithub)}
+              onClick={handleGithubLogin}
             >
               <FaGithub /> GitHub
             </button>
@@ -194,4 +254,4 @@ function Login() {
   );
 }
 
-export default Login; 
+export default Login;
