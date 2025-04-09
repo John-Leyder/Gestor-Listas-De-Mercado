@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Form, InputGroup, Table, Badge, Dropdown } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Container, Row, Col, Card, Button, Form, InputGroup, Table, Badge, Dropdown, Spinner } from 'react-bootstrap';
 import { FaFilter, FaSearch, FaToggleOn, FaToggleOff, FaEdit, FaTrash, FaChartLine, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { productService } from '../services/productService';
 import { useAuth } from '../../../contexts/AuthContext';
 import ProductForm from './ProductForm';
 import PriceHistoryChart from './PriceHistoryChart';
 import ExpenseSummary from './ExpenseSummary';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import './ProductList.css';
 
 export default function ProductList() {
@@ -18,6 +19,8 @@ export default function ProductList() {
   const [showPriceHistory, setShowPriceHistory] = useState(false);
   const [showExpenseSummary, setShowExpenseSummary] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
 
   // Estados para filtros
   const [filters, setFilters] = useState({
@@ -41,40 +44,49 @@ export default function ProductList() {
       maxPrice: '',
       isActive: ''
     });
+    setLastDoc(null);
+    setHasMore(true);
+    productService.clearProductCache();
   };
 
   // Cargar productos
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async (reset = false) => {
+    if (!user) return;
+
     try {
       setLoading(true);
       setError('');
       console.log('Cargando productos con filtros:', { ...filters, userId: user.uid });
-      const productsData = await productService.getProducts({
-        ...filters,
-        userId: user.uid
-      });
-      
+
+      const result = await productService.getProducts(
+        user.uid,
+        filters,
+        reset ? null : lastDoc
+      );
+
       // Asegurarnos de que todos los productos tengan precios válidos
-      const productsWithValidPrices = productsData.map(product => ({
+      const productsWithValidPrices = result.products.map(product => ({
         ...product,
         price: typeof product.price === 'number' ? product.price : parseFloat(product.price || 0)
       }));
       
       console.log('Productos procesados:', productsWithValidPrices);
-      setProducts(productsWithValidPrices);
+      setProducts(prev => reset ? productsWithValidPrices : [...prev, ...productsWithValidPrices]);
+      setLastDoc(result.lastVisible);
+      setHasMore(result.hasMore);
     } catch (err) {
       setError('Error al cargar los productos');
       console.error('Error en loadProducts:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, filters, lastDoc]);
 
   useEffect(() => {
     if (user) {
-      loadProducts();
+      loadProducts(true);
     }
-  }, [filters, user]);
+  }, [loadProducts, user]);
 
   // Manejadores de eventos
   const handleFilterChange = (e) => {
@@ -83,6 +95,9 @@ export default function ProductList() {
       ...prev,
       [name]: value
     }));
+    setLastDoc(null);
+    setHasMore(true);
+    productService.clearProductCache();
   };
 
   const handleSort = (key) => {
@@ -271,81 +286,97 @@ export default function ProductList() {
             </div>
           ) : (
             <div className="table-responsive">
-              <Table className="table-products">
-                <thead>
-                  <tr>
-                    <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                      Nombre {getSortIcon('name')}
-                    </th>
-                    <th onClick={() => handleSort('brand')} style={{ cursor: 'pointer' }}>
-                      Marca {getSortIcon('brand')}
-                    </th>
-                    <th onClick={() => handleSort('price')} style={{ cursor: 'pointer' }}>
-                      Precio {getSortIcon('price')}
-                    </th>
-                    <th onClick={() => handleSort('categoryName')} style={{ cursor: 'pointer' }}>
-                      Categoría {getSortIcon('categoryName')}
-                    </th>
-                    <th onClick={() => handleSort('storeName')} style={{ cursor: 'pointer' }}>
-                      Tienda {getSortIcon('storeName')}
-                    </th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getSortedProducts().map(product => (
-                    <tr key={product.id}>
-                      <td className="product-name">{product.name || 'Sin nombre'}</td>
-                      <td className="product-category">{product.brand || '-'}</td>
-                      <td className="product-price">${formatPrice(product.price)}</td>
-                      <td className="product-category">{product.categoryName || 'Sin categoría'}</td>
-                      <td className="product-store">{product.storeName || 'Sin tienda'}</td>
-                      <td className="product-status">
-                        {product.isActive ? (
-                          <span className="status-active">Activo</span>
-                        ) : (
-                          <span className="status-inactive">Inactivo</span>
-                        )}
-                      </td>
-                      <td>
-                        <div className="action-buttons">
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() => handleShowPriceHistory(product)}
-                            title="Ver historial de precios"
-                            className="action-btn"
-                          >
-                            <FaChartLine />
-                          </Button>
-                          <Button
-                            variant="outline-secondary"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedProduct(product);
-                              setShowForm(true);
-                            }}
-                            title="Editar producto"
-                            className="action-btn"
-                          >
-                            <FaEdit />
-                          </Button>
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => handleDelete(product.id)}
-                            title="Eliminar producto"
-                            className="action-btn"
-                          >
-                            <FaTrash />
-                          </Button>
-                        </div>
-                      </td>
+              <InfiniteScroll
+                dataLength={products.length}
+                next={loadProducts}
+                hasMore={hasMore}
+                loader={
+                  <div className="text-center my-3">
+                    <Spinner animation="border" variant="primary" />
+                  </div>
+                }
+                endMessage={
+                  <p className="text-center my-3">
+                    No hay más productos para mostrar
+                  </p>
+                }
+              >
+                <Table className="table-products">
+                  <thead>
+                    <tr>
+                      <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                        Nombre {getSortIcon('name')}
+                      </th>
+                      <th onClick={() => handleSort('brand')} style={{ cursor: 'pointer' }}>
+                        Marca {getSortIcon('brand')}
+                      </th>
+                      <th onClick={() => handleSort('price')} style={{ cursor: 'pointer' }}>
+                        Precio {getSortIcon('price')}
+                      </th>
+                      <th onClick={() => handleSort('categoryName')} style={{ cursor: 'pointer' }}>
+                        Categoría {getSortIcon('categoryName')}
+                      </th>
+                      <th onClick={() => handleSort('storeName')} style={{ cursor: 'pointer' }}>
+                        Tienda {getSortIcon('storeName')}
+                      </th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {getSortedProducts().map(product => (
+                      <tr key={product.id}>
+                        <td className="product-name">{product.name || 'Sin nombre'}</td>
+                        <td className="product-category">{product.brand || '-'}</td>
+                        <td className="product-price">${formatPrice(product.price)}</td>
+                        <td className="product-category">{product.categoryName || 'Sin categoría'}</td>
+                        <td className="product-store">{product.storeName || 'Sin tienda'}</td>
+                        <td className="product-status">
+                          {product.isActive ? (
+                            <span className="status-active">Activo</span>
+                          ) : (
+                            <span className="status-inactive">Inactivo</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="action-buttons">
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => handleShowPriceHistory(product)}
+                              title="Ver historial de precios"
+                              className="action-btn"
+                            >
+                              <FaChartLine />
+                            </Button>
+                            <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedProduct(product);
+                                setShowForm(true);
+                              }}
+                              title="Editar producto"
+                              className="action-btn"
+                            >
+                              <FaEdit />
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleDelete(product.id)}
+                              title="Eliminar producto"
+                              className="action-btn"
+                            >
+                              <FaTrash />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </InfiniteScroll>
             </div>
           )}
         </Card.Body>

@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Login from '../features/auth/components/Login';
-import Signup from '../features/auth/components/Signup';
-import Dashboard from '../features/dashboard/components/Dashboard';
+import { Spinner } from 'react-bootstrap';
+
+// Componentes lazy loaded
+const Login = lazy(() => import('../features/auth/components/Login'));
+const Signup = lazy(() => import('../features/auth/components/Signup'));
+const Dashboard = lazy(() => import('../features/dashboard/components/Dashboard'));
+
+// Componente de carga
+const LoadingSpinner = () => (
+  <div className="d-flex justify-content-center align-items-center min-vh-100">
+    <Spinner animation="border" variant="primary" />
+  </div>
+);
 
 // Componente para rutas protegidas
 function PrivateRoute({ children }) {
@@ -14,7 +24,11 @@ function PrivateRoute({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      {children}
+    </Suspense>
+  );
 }
 
 // Componente para rutas públicas (login/signup)
@@ -26,7 +40,11 @@ function PublicRoute({ children }) {
     return <Navigate to={location.state?.from?.pathname || "/"} replace />;
   }
 
-  return children;
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      {children}
+    </Suspense>
+  );
 }
 
 export default function AppRoutes() {

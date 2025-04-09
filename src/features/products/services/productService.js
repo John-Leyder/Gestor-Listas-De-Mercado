@@ -11,11 +11,16 @@ import {
   serverTimestamp,
   orderBy,
   limit,
-  Timestamp
+  Timestamp,
+  startAfter
 } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
 
 const COLLECTION_NAME = 'products';
+
+// Caché simple para productos
+const productCache = new Map();
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutos
 
 export const productService = {
   // Crear un nuevo producto
@@ -86,116 +91,73 @@ export const productService = {
   },
 
   // Obtener productos con filtros
-  async getProducts(filters = {}) {
+  async getProducts(userId, filters = {}, lastDoc = null, pageSize = 10) {
     try {
-      let q = collection(db, 'products');
-      const constraints = [];
-
-      // Aplicar filtro por userId
-      if (filters.userId) {
-        constraints.push(where('userId', '==', filters.userId));
+      const cacheKey = `${userId}-${JSON.stringify(filters)}-${lastDoc?.id || 'first'}`;
+      const cachedData = productCache.get(cacheKey);
+      
+      if (cachedData && Date.now() - cachedData.timestamp < CACHE_EXPIRY) {
+        return cachedData.data;
       }
 
-      // Aplicar filtro por estado activo/inactivo
-      if (filters.isActive !== undefined && filters.isActive !== '') {
-        // Convertir el string 'true'/'false' a booleano
-        const isActiveValue = filters.isActive === true || filters.isActive === 'true';
-        constraints.push(where('isActive', '==', isActiveValue));
+      // Construir la consulta base
+      let q = query(
+        collection(db, 'products'),
+        where('userId', '==', userId),
+        where('isActive', '==', true)
+      );
+
+      // Aplicar filtros adicionales si existen
+      if (filters.category) {
+        q = query(q, where('category', '==', filters.category));
       }
 
-      // Aplicar filtro por categoría
-      if (filters.categoryId) {
-        constraints.push(where('categoryId', '==', filters.categoryId));
+      if (filters.store) {
+        q = query(q, where('store', '==', filters.store));
       }
 
-      // Aplicar filtro por tienda
-      if (filters.storeId) {
-        constraints.push(where('storeId', '==', filters.storeId));
-      }
-
-      // Aplicar la consulta con todos los filtros
-      q = query(q, ...constraints);
+      // Obtener los documentos
       const querySnapshot = await getDocs(q);
-      let products = querySnapshot.docs.map(doc => {
+      const products = [];
+      let lastVisible = null;
+
+      for (const doc of querySnapshot.docs) {
         const data = doc.data();
-        // Asegurarnos de que el precio sea un número
-        const price = typeof data.price === 'number' ? data.price : parseFloat(data.price || 0);
-        
-        // Procesar la fecha según su tipo
-        let createdAt;
-        if (data.createdAt?.toDate) {
-          createdAt = data.createdAt.toDate();
-        } else if (typeof data.createdAt === 'string') {
-          createdAt = new Date(data.createdAt);
-        } else if (data.createdAt instanceof Date) {
-          createdAt = data.createdAt;
-        } else {
-          createdAt = new Date();
-        }
-        
-        return {
+        products.push({
           id: doc.id,
           ...data,
-          price: isNaN(price) ? 0 : price,
-          // Almacenar la fecha procesada
-          createdAt: createdAt,
-          updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
-          // Asegurar que estos campos existan
-          name: data.name || '',
-          brand: data.brand || '',
-          categoryName: data.categoryName || 'Sin categoría',
-          storeName: data.storeName || 'Sin tienda',
-          isActive: typeof data.isActive === 'boolean' ? data.isActive : true
-        };
-      });
-
-      // Aplicar filtros de texto y precio en memoria
-      if (filters.name) {
-        const searchName = filters.name.toLowerCase();
-        products = products.filter(product => 
-          product.name.toLowerCase().includes(searchName)
-        );
-      }
-
-      if (filters.brand) {
-        const searchBrand = filters.brand.toLowerCase();
-        products = products.filter(product => 
-          product.brand.toLowerCase().includes(searchBrand)
-        );
-      }
-
-      // Filtrar por fecha de inicio y fin
-      if (filters.startDate && filters.endDate) {
-        const startDate = filters.startDate instanceof Date ? filters.startDate : new Date(filters.startDate);
-        const endDate = filters.endDate instanceof Date ? filters.endDate : new Date(filters.endDate);
-        
-        // Ajustar la hora de la fecha final para incluir todo el día
-        endDate.setHours(23, 59, 59, 999);
-        
-        products = products.filter(product => {
-          const productDate = product.createdAt instanceof Date ? product.createdAt : new Date(product.createdAt);
-          return productDate >= startDate && productDate <= endDate;
+          price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt) || new Date(),
+          updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt) || new Date()
         });
       }
 
-      if (filters.minPrice !== undefined && filters.minPrice !== '') {
-        const minPrice = parseFloat(filters.minPrice);
-        if (!isNaN(minPrice)) {
-          products = products.filter(product => product.price >= minPrice);
-        }
+      // Ordenar los productos por fecha de creación (más recientes primero)
+      products.sort((a, b) => b.createdAt - a.createdAt);
+
+      // Aplicar paginación en memoria
+      const startIndex = lastDoc ? products.findIndex(p => p.id === lastDoc.id) + 1 : 0;
+      const paginatedProducts = products.slice(startIndex, startIndex + pageSize);
+
+      if (paginatedProducts.length > 0) {
+        lastVisible = { id: paginatedProducts[paginatedProducts.length - 1].id };
       }
 
-      if (filters.maxPrice !== undefined && filters.maxPrice !== '') {
-        const maxPrice = parseFloat(filters.maxPrice);
-        if (!isNaN(maxPrice)) {
-          products = products.filter(product => product.price <= maxPrice);
-        }
-      }
+      const result = {
+        products: paginatedProducts,
+        lastVisible,
+        hasMore: startIndex + pageSize < products.length
+      };
 
-      console.log('Productos recuperados de Firestore:', products);
-      return products;
+      // Guardar en caché
+      productCache.set(cacheKey, {
+        data: result,
+        timestamp: Date.now()
+      });
+
+      return result;
     } catch (error) {
-      console.error('Error getting products:', error);
+      console.error('Error al obtener productos:', error);
       throw error;
     }
   },
@@ -332,4 +294,9 @@ export const productService = {
       throw error;
     }
   }
+};
+
+// Función para limpiar la caché
+export const clearProductCache = () => {
+  productCache.clear();
 }; 

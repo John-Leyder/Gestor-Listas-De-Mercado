@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Button, Card, Alert, Container } from 'react-bootstrap';
+import { Form, Button, Card, Alert, Spinner } from 'react-bootstrap';
 import { FaGoogle, FaGithub } from 'react-icons/fa';
 import { useAuth } from '../../../contexts/AuthContext';
 import '../styles/Auth.css';
-import '../../../styles/global.css';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -15,7 +14,6 @@ export default function Signup() {
   const navigate = useNavigate();
   const { signup, loginWithGoogle, loginWithGithub } = useAuth();
 
-  // Función para validar el email
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -40,7 +38,7 @@ export default function Signup() {
       setError('');
       setLoading(true);
       await signup(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       setError(getErrorMessage(error.code));
     } finally {
@@ -48,23 +46,14 @@ export default function Signup() {
     }
   }
 
-  async function handleSocialLogin(provider) {
+  async function handleSocialLogin(provider, providerFunction) {
     try {
       setError('');
       setLoading(true);
-      switch (provider) {
-        case 'google':
-          await loginWithGoogle();
-          break;
-        case 'github':
-          await loginWithGithub();
-          break;
-        default:
-          throw new Error('Proveedor no soportado');
-      }
-      navigate('/');
+      await providerFunction();
+      navigate('/dashboard');
     } catch (error) {
-      console.error(error);
+      console.error(`Error de inicio de sesión con ${provider}:`, error);
       setError(getErrorMessage(error.code));
     } finally {
       setLoading(false);
@@ -95,94 +84,88 @@ export default function Signup() {
   }
 
   return (
-    <Container className="d-flex align-items-center justify-content-center min-vh-100">
-      <div className="w-100" style={{ maxWidth: '400px' }}>
-        <Card className="shadow-lg border-0">
-          <Card.Body className="p-4">
-            <h2 className="text-center mb-4 fw-bold">Crear Cuenta</h2>
-            {error && <Alert variant="danger" className="text-center">{error}</Alert>}
-            <Form onSubmit={handleSubmit}>
-              <Form.Group id="email" className="mb-3">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error && validateEmail(e.target.value)) {
-                      setError('');
-                    }
-                  }}
-                  isInvalid={error && error.includes('email')}
-                  required
-                  className="form-control-lg"
-                  placeholder="ejemplo@correo.com"
-                />
-                <Form.Control.Feedback type="invalid">
-                  {error && error.includes('email') ? error : ''}
-                </Form.Control.Feedback>
-              </Form.Group>
-              <Form.Group id="password" className="mb-3">
-                <Form.Label>Contraseña</Form.Label>
-                <Form.Control
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="form-control-lg"
-                  placeholder="Ingresa tu contraseña"
-                />
-              </Form.Group>
-              <Form.Group id="password-confirm" className="mb-4">
-                <Form.Label>Confirmar Contraseña</Form.Label>
-                <Form.Control
-                  type="password"
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  required
-                  className="form-control-lg"
-                  placeholder="Confirma tu contraseña"
-                />
-              </Form.Group>
-              <Button 
-                disabled={loading} 
-                className="w-100 mb-4 btn-lg" 
-                type="submit"
-                variant="primary"
-              >
-                {loading ? 'Creando cuenta...' : 'Registrarse'}
-              </Button>
-            </Form>
-            <div className="text-center mb-3">
-              <span className="text-muted">O regístrate con</span>
-            </div>
-            <div className="social-login">
-              <Button
-                variant="outline-danger"
-                className="w-100 mb-3 btn-lg d-flex align-items-center justify-content-center"
-                onClick={() => handleSocialLogin('google')}
+    <div className="auth-container">
+      <Card className="auth-card">
+        <Card.Body>
+          <h2 className="auth-title">Crear Cuenta</h2>
+          
+          {error && <Alert variant="danger">{error}</Alert>}
+          
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="form-group">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ejemplo@correo.com"
                 disabled={loading}
-              >
-                <FaGoogle className="me-2" />
-                <span>Google</span>
-              </Button>
-              <Button
-                variant="outline-dark"
-                className="w-100 mb-3 btn-lg d-flex align-items-center justify-content-center"
-                onClick={() => handleSocialLogin('github')}
+              />
+            </Form.Group>
+
+            <Form.Group className="form-group">
+              <Form.Label>Contraseña</Form.Label>
+              <Form.Control
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Ingresa tu contraseña"
                 disabled={loading}
-              >
-                <FaGithub className="me-2" />
-                <span>GitHub</span>
-              </Button>
-            </div>
-          </Card.Body>
-        </Card>
-        <div className="w-100 text-center mt-3">
-          <span className="text-muted">¿Ya tienes una cuenta?</span>{' '}
-          <Link to="/login" className="text-decoration-none fw-bold">Inicia Sesión</Link>
-        </div>
-      </div>
-    </Container>
+              />
+            </Form.Group>
+
+            <Form.Group className="form-group">
+              <Form.Label>Confirmar Contraseña</Form.Label>
+              <Form.Control
+                type="password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                placeholder="Confirma tu contraseña"
+                disabled={loading}
+              />
+            </Form.Group>
+
+            <Button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Creando cuenta...
+                </>
+              ) : 'Registrarse'}
+            </Button>
+          </Form>
+
+          <div className="divider">
+            <span>O regístrate con</span>
+          </div>
+
+          <div className="social-login">
+            <button
+              className="social-btn google"
+              onClick={() => handleSocialLogin('Google', loginWithGoogle)}
+              disabled={loading}
+            >
+              <FaGoogle /> Google
+            </button>
+
+            <button
+              className="social-btn github"
+              onClick={() => handleSocialLogin('GitHub', loginWithGithub)}
+              disabled={loading}
+            >
+              <FaGithub /> GitHub
+            </button>
+          </div>
+
+          <Link to="/login" className="auth-link">
+            ¿Ya tienes una cuenta? Inicia Sesión
+          </Link>
+        </Card.Body>
+      </Card>
+    </div>
   );
 } 

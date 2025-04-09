@@ -119,90 +119,78 @@ function Login() {
   };
 
   return (
-    <Container fluid className="auth-container">
-      <Row className="justify-content-center align-items-center h-100">
-        <Col xs={12} sm={10} md={8} lg={6} xl={5}>
-          <Card className="auth-card">
-            <Card.Body className="p-4 p-md-5">
-              <h2 className="auth-title text-center mb-4">Iniciar Sesión</h2>
-              
-              {error && <Alert variant="danger">{error}</Alert>}
-              
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control 
-                    type="email" 
-                    placeholder="Ingresa tu email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                  />
-                </Form.Group>
-                
-                <Form.Group className="mb-4">
-                  <Form.Label>Contraseña</Form.Label>
-                  <Form.Control 
-                    type="password" 
-                    placeholder="Ingresa tu contraseña" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
-                  />
-                </Form.Group>
-                
-                <Button 
-                  variant="primary" 
-                  type="submit" 
-                  className="w-100 mb-4" 
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Spinner animation="border" size="sm" className="me-2" />
-                      Iniciando sesión...
-                    </>
-                  ) : 'Iniciar Sesión'}
-                </Button>
-              </Form>
-              
-              <div className="divider d-flex align-items-center my-4">
-                <p className="text-center mx-3 mb-0">O continúa con</p>
-              </div>
-              
-              <div className="social-login d-flex justify-content-center gap-3 mb-4">
-                <Button 
-                  variant="outline-secondary" 
-                  className="social-btn"
-                  disabled={loading}
-                  onClick={() => handleSocialLogin('Google', loginWithGoogle)}
-                >
-                  <FaGoogle className="me-2" />
-                  Google
-                </Button>
-                
-                <Button 
-                  variant="outline-secondary"
-                  className="social-btn"
-                  disabled={loading}
-                  onClick={() => handleSocialLogin('GitHub', loginWithGithub)}
-                >
-                  <FaGithub className="me-2" />
-                  GitHub
-                </Button>
-              </div>
-              
-              <div className="text-center">
-                <p>
-                  ¿No tienes una cuenta?{' '}
-                  <Link to="/signup" className="auth-link">Regístrate aquí</Link>
-                </p>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+    <div className="auth-container">
+      <Card className="auth-card">
+        <Card.Body>
+          <h2 className="auth-title">Iniciar Sesión</h2>
+          
+          {error && <Alert variant="danger">{error}</Alert>}
+          
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="form-group">
+              <Form.Label>Email</Form.Label>
+              <Form.Control 
+                type="email" 
+                placeholder="Ingresa tu email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
+            </Form.Group>
+            
+            <Form.Group className="form-group">
+              <Form.Label>Contraseña</Form.Label>
+              <Form.Control 
+                type="password" 
+                placeholder="Ingresa tu contraseña" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
+            </Form.Group>
+            
+            <Button 
+              type="submit" 
+              className="btn btn-primary" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Iniciando sesión...
+                </>
+              ) : 'Iniciar Sesión'}
+            </Button>
+          </Form>
+          
+          <div className="divider">
+            <span>O continúa con</span>
+          </div>
+          
+          <div className="social-login">
+            <button 
+              className="social-btn google"
+              disabled={loading}
+              onClick={() => handleSocialLogin('Google', loginWithGoogle)}
+            >
+              <FaGoogle /> Google
+            </button>
+            
+            <button 
+              className="social-btn github"
+              disabled={loading}
+              onClick={() => handleSocialLogin('GitHub', loginWithGithub)}
+            >
+              <FaGithub /> GitHub
+            </button>
+          </div>
+          
+          <Link to="/signup" className="auth-link">
+            ¿No tienes una cuenta? Regístrate aquí
+          </Link>
+        </Card.Body>
+      </Card>
+    </div>
   );
 }
 
