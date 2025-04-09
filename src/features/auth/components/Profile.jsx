@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Button, Alert, Container } from 'react-bootstrap';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { unlink, linkWithPopup, GithubAuthProvider, GoogleAuthProvider } from 'firebase/auth';
+import { unlink, GoogleAuthProvider, GithubAuthProvider } from 'firebase/auth';
 import { auth } from '../../../firebase/config';
 import { FaGoogle, FaGithub } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 export default function Profile() {
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, linkAccount } = useAuth();
   const navigate = useNavigate();
 
   const providers = {
@@ -44,24 +43,27 @@ export default function Profile() {
     if (!providers[providerId]) return;
     
     setLoading(true);
+    setError('');
+    
     try {
-      await linkWithPopup(auth.currentUser, providers[providerId].provider);
+      await linkAccount(providers[providerId].provider);
       toast.success(`Cuenta de ${providers[providerId].name} vinculada exitosamente`);
     } catch (error) {
       console.error('Error al vincular:', error);
       
       let errorMessage = 'Error al vincular el proveedor';
       
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = `Esta cuenta de ${providers[providerId].name} ya está vinculada a otro usuario. Por favor, primero desvincula la cuenta de ${providers[providerId].name} del otro usuario o usa una cuenta diferente.`;
-      } else if (error.code === 'auth/credential-already-in-use') {
-        errorMessage = `Esta cuenta de ${providers[providerId].name} ya está en uso por otro usuario.`;
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Se cerró la ventana de autenticación. Por favor, intenta nuevamente.';
+      if (error.code === 'auth/credential-already-in-use') {
+        errorMessage = `Esta cuenta de ${providers[providerId].name} ya está vinculada a otro usuario.`;
+      } else if (error.code === 'auth/email-already-in-use') {
+        errorMessage = `El email de esta cuenta de ${providers[providerId].name} ya está en uso por otro usuario.`;
       } else if (error.code === 'auth/requires-recent-login') {
         errorMessage = 'Por seguridad, necesitas volver a iniciar sesión antes de vincular una nueva cuenta.';
+        await logout();
+        navigate('/login');
       }
       
+      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -72,19 +74,24 @@ export default function Profile() {
     if (!providers[providerId]) return;
     
     // No permitir desvincular si es el único proveedor
-    const connectedProviders = user.providerData.length;
-    if (connectedProviders <= 1) {
-      toast.error('No puedes desvincular tu único método de inicio de sesión');
+    if (connectedProviders.length <= 1) {
+      const errorMsg = 'No puedes desvincular tu único método de inicio de sesión';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     setLoading(true);
+    setError('');
+    
     try {
       await unlink(auth.currentUser, providerId);
       toast.success(`Cuenta de ${providers[providerId].name} desvinculada exitosamente`);
     } catch (error) {
       console.error('Error al desvincular:', error);
-      toast.error('Error al desvincular la cuenta. Por favor, intenta nuevamente.');
+      const errorMsg = 'Error al desvincular la cuenta. Por favor, intenta nuevamente.';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -97,46 +104,38 @@ export default function Profile() {
           <Card.Body>
             <h2 className="text-center mb-4">Perfil</h2>
             {error && <Alert variant="danger">{error}</Alert>}
-            {message && <Alert variant="success">{message}</Alert>}
             <strong>Email:</strong> {user.email}
             
-            <div className="mt-4">
-              <h5>Proveedores de inicio de sesión</h5>
-              {Object.entries(providers).map(([providerId, providerInfo]) => (
-                <div key={providerId} className="d-flex justify-content-between align-items-center mt-2">
-                  <span>
-                    {providerInfo.icon}
-                    {providerInfo.name}
-                  </span>
-                  {connectedProviders.includes(providerId) ? (
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleUnlinkProvider(providerId)}
-                      disabled={loading || connectedProviders.length <= 1}
-                    >
-                      Desvincular
-                    </Button>
-                  ) : (
-                    <Button
-                      variant={providerInfo.color}
-                      size="sm"
-                      onClick={() => handleLinkProvider(providerId)}
-                      disabled={loading}
-                    >
-                      Vincular
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
+            <h3 className="mt-4 mb-3">Proveedores de inicio de sesión</h3>
+            
+            {Object.entries(providers).map(([providerId, providerInfo]) => (
+              <div key={providerId} className="d-grid gap-2 mt-2">
+                <Button
+                  variant={providerInfo.color}
+                  onClick={() => 
+                    connectedProviders.includes(providerId) 
+                      ? handleUnlinkProvider(providerId)
+                      : handleLinkProvider(providerId)
+                  }
+                  disabled={loading}
+                >
+                  {providerInfo.icon}
+                  {connectedProviders.includes(providerId) 
+                    ? `Desvincular ${providerInfo.name}`
+                    : `Vincular ${providerInfo.name}`
+                  }
+                </Button>
+              </div>
+            ))}
 
-            <Button className="w-100 mt-4" variant="primary" onClick={handleLogout}>
-              Cerrar Sesión
-            </Button>
+            <div className="d-grid gap-2 mt-4">
+              <Button variant="primary" onClick={handleLogout} disabled={loading}>
+                Cerrar Sesión
+              </Button>
+            </div>
           </Card.Body>
         </Card>
       </div>
     </Container>
   );
-} 
+}

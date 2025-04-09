@@ -6,7 +6,9 @@ import {
   GoogleAuthProvider,
   GithubAuthProvider,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  fetchSignInMethodsForEmail,
+  linkWithPopup
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
 
@@ -45,40 +47,49 @@ export function AuthProvider({ children }) {
   };
 
   // Inicio de sesión con Google
-  const loginWithGoogle = () => {
+  const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      return result;
+    } catch (error) {
+      console.error('Error en login con Google:', error);
+      throw error;
+    }
+  };
+
+  // Vincular cuenta con proveedor
+  const linkAccount = async (provider) => {
+    if (!auth.currentUser) throw new Error('No hay usuario autenticado');
+    try {
+      const result = await linkWithPopup(auth.currentUser, provider);
+      return result;
+    } catch (error) {
+      console.error('Error al vincular cuenta:', error);
+      throw error;
+    }
   };
 
   // Inicio de sesión con GitHub
   const loginWithGithub = async () => {
     const provider = new GithubAuthProvider();
     try {
-      return await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      return result;
     } catch (error) {
       if (error.code === 'auth/account-exists-with-different-credential') {
         const email = error.customData?.email;
-        const pendingCredential = GithubAuthProvider.credentialFromError(error);
-
-        if (email && pendingCredential) {
-          try {
-            // Obtener los métodos de inicio de sesión asociados al email
-            const methods = await auth.fetchSignInMethodsForEmail(email);
-
-            if (methods.includes('google.com')) {
-              const googleProvider = new GoogleAuthProvider();
-              const result = await signInWithPopup(auth, googleProvider);
-
-              // Vincular las credenciales pendientes
-              await result.user.linkWithCredential(pendingCredential);
-              return result;
-            }
-          } catch (linkError) {
-            console.error('Error al vincular las credenciales:', linkError);
-            throw new Error('No se pudo vincular la cuenta. Intenta de nuevo.');
+        
+        if (email) {
+          // Obtener los métodos de inicio de sesión disponibles
+          const methods = await fetchSignInMethodsForEmail(auth, email);
+          
+          if (methods.length > 0) {
+            throw new Error(`Esta cuenta ya está registrada. Por favor, inicia sesión con: ${methods.join(', ')}`);
           }
         }
       }
+      console.error('Error en login con GitHub:', error);
       throw error;
     }
   };
@@ -95,6 +106,7 @@ export function AuthProvider({ children }) {
     login,
     loginWithGoogle,
     loginWithGithub,
+    linkAccount,
     logout
   };
 
