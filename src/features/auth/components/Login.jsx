@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { FaGoogle, FaGithub } from 'react-icons/fa';
 import { useAuth } from '../../../contexts/AuthContext';
 import '../styles/Auth.css';
@@ -107,6 +107,7 @@ function Login() {
     try {
       setError('');
       setLoading(true);
+
       await providerFunction();
       navigate('/dashboard');
     } catch (error) {
